@@ -1,0 +1,89 @@
+Zarządzanie sadem owocowym i pracownikami sezonowymi.
+
+-- Tworzymy bazę danych dla zarządzania sadem owocowym
+CREATE DATABASE sad_owocowy;
+
+-- Przełączamy się na utworzoną bazę danych
+USE sad_owocowy;
+
+-- Tworzymy tabelę dla drzew owocowych w sadzie
+CREATE TABLE Sad (
+    DrzewoID INT PRIMARY KEY AUTO_INCREMENT,    -- Unikalny identyfikator drzewa
+    Gatunek VARCHAR(50) NOT NULL,               -- Gatunek drzewa, np. Jabłoń, Grusza, Wiśnia
+    Odmiana VARCHAR(50),                        -- Odmiana drzewa, np. Szampion, Golden, itp.
+    PlonKG DECIMAL(10, 2) NOT NULL,             -- Roczny plon w kilogramach
+    CenaZaKG DECIMAL(10, 2) NOT NULL,           -- Cena za kilogram owocu
+    KosztUtrzymania DECIMAL(10, 2) NOT NULL     -- Roczny koszt utrzymania drzewa
+);
+
+-- Tworzymy tabelę dla pracowników sezonowych
+CREATE TABLE Pracownicy (
+    PracownikID INT PRIMARY KEY AUTO_INCREMENT,  -- Unikalny identyfikator pracownika
+    Imie VARCHAR(50) NOT NULL,                   -- Imię pracownika
+    Nazwisko VARCHAR(50) NOT NULL,               -- Nazwisko pracownika
+    StawkaZaDzien DECIMAL(10, 2) NOT NULL,       -- Stawka dzienna za pracę
+    LiczbaDniPracy INT NOT NULL                  -- Liczba przepracowanych dni
+);
+
+-- Dodajemy dane o drzewach w sadzie
+INSERT INTO Sad (Gatunek, Odmiana, PlonKG, CenaZaKG, KosztUtrzymania)
+VALUES ('Jabłoń', 'Szampion', 1500.00, 2.50, 300.00),
+       ('Grusza', 'Konferencja', 1200.00, 3.00, 250.00),
+       ('Wiśnia', 'Łutówka', 800.00, 4.00, 200.00);
+
+-- Dodajemy dane o pracownikach sezonowych
+INSERT INTO Pracownicy (Imie, Nazwisko, StawkaZaDzien, LiczbaDniPracy)
+VALUES ('Jan', 'Nowak', 100.00, 20),
+       ('Anna', 'Kowalska', 120.00, 15),
+       ('Piotr', 'Zieliński', 110.00, 18);
+
+-- Zapytanie do wyświetlenia wszystkich drzew w sadzie z ich rocznym dochodem
+SELECT DrzewoID, Gatunek, Odmiana, PlonKG, CenaZaKG, 
+       (PlonKG * CenaZaKG) AS Dochod,     -- Obliczenie rocznego dochodu z każdego drzewa
+       KosztUtrzymania, 
+       ((PlonKG * CenaZaKG) - KosztUtrzymania) AS ZyskNetto  -- Obliczenie zysku netto z drzewa
+FROM Sad;
+
+-- Wyświetlenie wszystkich pracowników i ich całkowitych zarobków
+SELECT PracownikID, Imie, Nazwisko, StawkaZaDzien, LiczbaDniPracy, 
+       (StawkaZaDzien * LiczbaDniPracy) AS ZarobekCalkowity  -- Obliczenie całkowitego wynagrodzenia
+FROM Pracownicy;
+
+-- Obliczenie łącznych kosztów pracy w sadzie
+SELECT SUM(StawkaZaDzien * LiczbaDniPracy) AS LacznyKosztPracownikow
+FROM Pracownicy;
+
+-- Obliczenie łącznych dochodów, kosztów utrzymania i zysku netto całego sadu
+SELECT 
+    SUM(PlonKG * CenaZaKG) AS LacznyDochod,  -- Suma dochodów z wszystkich drzew
+    SUM(KosztUtrzymania) AS LacznyKosztUtrzymania,  -- Suma kosztów utrzymania wszystkich drzew
+    (SUM(PlonKG * CenaZaKG) - SUM(KosztUtrzymania)) AS LacznyZyskNetto  -- Suma zysków netto
+FROM Sad;
+
+-- Połączenie danych o sadzie z danymi o pracownikach (np. wyświetlenie razem z łącznym kosztem pracy)
+SELECT 
+    S.Gatunek, S.Odmiana, S.PlonKG, S.CenaZaKG,
+    (S.PlonKG * S.CenaZaKG) AS DochodZDrzewa, 
+    S.KosztUtrzymania, 
+    (S.PlonKG * S.CenaZaKG) - S.KosztUtrzymania AS ZyskNetto,
+    P.Imie, P.Nazwisko, 
+    P.StawkaZaDzien, P.LiczbaDniPracy,
+    (P.StawkaZaDzien * P.LiczbaDniPracy) AS KosztPracy
+FROM Sad S
+JOIN Pracownicy P ON P.PracownikID = S.DrzewoID % 3 + 1;  
+-- Powiązanie przykładowe: Pracownik przypisany do drzewa na podstawie ID drzewa modulo liczba pracowników
+-- Aktualizacja ceny za kilogram owoców dla jabłoni
+UPDATE Sad
+SET CenaZaKG = 2.70
+WHERE Gatunek = 'Jabłoń' AND Odmiana = 'Szampion';
+
+-- Zmiana stawki dziennej pracownika
+UPDATE Pracownicy
+SET StawkaZaDzien = 125.00
+WHERE PracownikID = 2;
+
+-- Usunięcie drzewa z sadu (np. gdy zostało ścięte)
+DELETE FROM Sad WHERE DrzewoID = 3;
+
+-- Usunięcie pracownika po zakończeniu sezonu
+DELETE FROM Pracownicy WHERE PracownikID = 3;
