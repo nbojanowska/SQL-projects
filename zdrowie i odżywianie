@@ -1,124 +1,103 @@
-Projekt SQL dotyczący zdrowego odżywiania, kalorii, kosztów jedzenia oraz powiązania tych danych z zaleceniami lekarza dotyczącymi diety i ćwiczeń fizycznych. Projekt obejmuje trzy tabele: Zywnosc, ZaleceniaLekarza, Cwiczenia oraz zapytania łączące te dane.
+Projekt SQL dotyczący zdrowego odżywiania, kalorii, kosztów jedzenia oraz powiązania tych danych z zaleceniami lekarza dotyczącymi diety i ćwiczeń fizycznych. Projekt obejmuje trzy tabele: Zywnosc, ZaleceniaLekarza, Cwiczenia.
 
--- Tworzymy bazę danych dla zarządzania zdrowym odżywianiem
+-- Stworzenie bazy danych 
 CREATE DATABASE zdrowe_odzywianie;
 
--- Przełączamy się na utworzoną bazę danych
-USE zdrowe_odzywianie;
 
--- Tworzymy tabelę dla żywności
+-- Stworzenie tabeli z żywnością
 CREATE TABLE Zywnosc (
-    ZywnoscID INT PRIMARY KEY AUTO_INCREMENT,  -- Unikalny identyfikator żywności
-    Nazwa VARCHAR(100) NOT NULL,               -- Nazwa produktu żywnościowego
-    Kalorie INT NOT NULL,                      -- Ilość kalorii na 100g produktu
-    CenaZaKG DECIMAL(10, 2) NOT NULL           -- Cena za kilogram produktu
+    ZywnoscID INT PRIMARY KEY AUTO_INCREMENT,  -- ID żywności, automatyczne
+    Nazwa VARCHAR(100) NOT NULL,               -- Nazwa żywności, nie może być puste
+    Kalorie INT NOT NULL,                      -- Ilość kalorii na 100g produktu, nie może być puste
+    CenaZaKG DECIMAL(10, 2) NOT NULL           -- Cena za kg produktu, nie może być puste
 );
 
--- Tworzymy tabelę dla zaleceń lekarza
+
+-- Stworzenie tabeli z zaleceniami lekarza
 CREATE TABLE ZaleceniaLekarza (
-    ZalecenieID INT PRIMARY KEY AUTO_INCREMENT, -- Unikalny identyfikator zalecenia
-    NazwaDiety VARCHAR(100) NOT NULL,           -- Nazwa diety, np. "Niskokaloryczna", "Wysokobiałkowa"
-    Opis TEXT NOT NULL,                         -- Opis zalecenia diety
-    KalorieDziennie INT NOT NULL                -- Zalecana liczba kalorii dziennie
+    ZalecenieID INT PRIMARY KEY AUTO_INCREMENT, -- ID zalecenia, automatyczne
+    NazwaDiety VARCHAR(100) NOT NULL,           -- Nazwa diety, nie może być puste
+    Opis TEXT NOT NULL,                         -- Opis diety, nie może być puste
+    KalorieDziennie INT NOT NULL                -- Zalecana liczba kalorii dziennie, nie może być puste
 );
 
--- Tworzymy tabelę dla ćwiczeń
+
+-- Stworzenie tabeli z ćwiczeniami
 CREATE TABLE Cwiczenia (
-    CwiczenieID INT PRIMARY KEY AUTO_INCREMENT,  -- Unikalny identyfikator ćwiczenia
-    Nazwa VARCHAR(100) NOT NULL,                 -- Nazwa ćwiczenia, np. "Bieganie", "Jazda na rowerze"
-    KalorieSpaloneNaGodzine INT NOT NULL         -- Ilość spalanych kalorii na godzinę
+    CwiczenieID INT PRIMARY KEY AUTO_INCREMENT,  -- ID ćwiczenia, automatyczne
+    Nazwa VARCHAR(100) NOT NULL,                 -- Nazwa ćwiczenia, nie może być puste
+    KalorieSpaloneNaGodzine INT NOT NULL         -- Ilość spalanych kalorii na godzinę, nie może być puste
 );
 
--- Dodajemy dane o żywności
+
+-- Dodanie danych do tabeli z żywnością
 INSERT INTO Zywnosc (Nazwa, Kalorie, CenaZaKG)
 VALUES ('Jabłka', 52, 3.00),
        ('Banan', 89, 4.50),
        ('Filet z kurczaka', 165, 20.00),
        ('Chleb pełnoziarnisty', 247, 5.00);
 
--- Dodajemy dane o zaleceniach lekarza
+
+-- Dodanie danych do tabeli z zaleceniami lekarza
 INSERT INTO ZaleceniaLekarza (NazwaDiety, Opis, KalorieDziennie)
 VALUES ('Niskokaloryczna', 'Dieta z ograniczoną ilością kalorii, zalecana dla osób z nadwagą', 1500),
        ('Wysokobiałkowa', 'Dieta bogata w białko, odpowiednia dla osób budujących mięśnie', 2500);
 
--- Dodajemy dane o ćwiczeniach
+
+-- Dodanie danych do tabeli z ćwiczeniami
 INSERT INTO Cwiczenia (Nazwa, KalorieSpaloneNaGodzine)
 VALUES ('Bieganie', 600),
        ('Jazda na rowerze', 500),
        ('Pływanie', 700),
        ('Spacer', 300);
 
+
+-- Zapytania do tabel
+
+-- 1
 -- Wyświetlenie wszystkich produktów żywnościowych wraz z ich kaloriami i kosztami
 SELECT ZywnoscID, Nazwa, Kalorie, CenaZaKG
 FROM Zywnosc;
 
+-- 2
 -- Wyświetlenie wszystkich zaleceń lekarza dotyczących diet
 SELECT ZalecenieID, NazwaDiety, Opis, KalorieDziennie
 FROM ZaleceniaLekarza;
 
+-- 3
 -- Wyświetlenie wszystkich ćwiczeń wraz z ilością spalanych kalorii na godzinę
 SELECT CwiczenieID, Nazwa, KalorieSpaloneNaGodzine
 FROM Cwiczenia;
 
--- Obliczenie, ile kalorii dostarcza posiłek składający się z wybranych produktów (np. 200g jabłek, 150g filetu z kurczaka)
+-- 4
+-- Obliczenie, ile kalorii dostarcza posiłek składający się z wybranych produktów
 SELECT 
     Z.Nazwa, 
     Z.Kalorie, 
-    ROUND((Z.Kalorie / 100.0) * 200, 2) AS KalorieNa200g
+    ROUND((Z.Kalorie / 100.0) * 200, 2) AS KalorieNa200g    -- Obliczanie kalorii dla 200g danego produktu
+                                                            -- Z.Kalorie to wartość kalorii na 100g. Najpierw dzielimy przez 100, aby uzyskać kalorie na 1 gram, a następnie mnożymy przez 200, aby uzyskać kalorie dla 200g
+                                                            -- ROUND(..., 2) - Zaokrągla wynik do dwóch miejsc po przecinku
+                                                            -- AS KalorieNa200g - Nadaje alias (KalorieNa200g) obliczonemu wynikowi, co sprawia, że wynik tej kolumny będzie wyświetlany jako "KalorieNa200g"              
 FROM Zywnosc Z
 WHERE Z.Nazwa = 'Jabłka'
-UNION ALL
-SELECT 
-    Z.Nazwa, 
-    Z.Kalorie, 
-    ROUND((Z.Kalorie / 100.0) * 150, 2) AS KalorieNa150g
-FROM Zywnosc Z
-WHERE Z.Nazwa = 'Filet z kurczaka';
 
--- Obliczenie, ile czasu trzeba poświęcić na ćwiczenia, aby spalić posiłek złożony z 200g jabłek i 150g kurczaka
-SELECT 
-    C.Nazwa AS Cwiczenie, 
-    ROUND(SUM(KalorieNa100g) / C.KalorieSpaloneNaGodzine, 2) AS GodzinyNaSpalenie
-FROM (
-    SELECT 
-        Z.Nazwa, 
-        (Z.Kalorie / 100.0) * 200 AS KalorieNa100g
-    FROM Zywnosc Z
-    WHERE Z.Nazwa = 'Jabłka'
-    UNION ALL
-    SELECT 
-        Z.Nazwa, 
-        (Z.Kalorie / 100.0) * 150 AS KalorieNa100g
-    FROM Zywnosc Z
-    WHERE Z.Nazwa = 'Filet z kurczaka'
-) AS KaloriePosilku
-JOIN Cwiczenia C ON 1=1
-GROUP BY C.Nazwa, C.KalorieSpaloneNaGodzine;
 
--- Połączenie danych z tabel żywności i zaleceń lekarza, aby sprawdzić, jakie produkty pasują do danej diety
-SELECT 
-    Z.NazwaDiety, 
-    Zy.Nazwa AS Produkt, 
-    Zy.Kalorie AS KalorieNa100g,
-    Z.KalorieDziennie,
-    ROUND((Z.KalorieDziennie / Zy.Kalorie) * 100, 2) AS MaksymalnaIloscWGNaDzien 
-FROM ZaleceniaLekarza Z
-JOIN Zywnosc Zy ON Zy.Kalorie <= Z.KalorieDziennie / 10  
--- Przykładowo, produkty, których kalorie na 100g stanowią maksymalnie 10% dziennego limitu kalorycznego
-ORDER BY Z.NazwaDiety, Zy.Kalorie;
-
--- Aktualizacja liczby kalorii w produkcie, jeśli zmieniono wartość energetyczną (np. zaktualizowane dane od producenta)
+-- 5
+-- Aktualizacja liczby kalorii w produkcie
 UPDATE Zywnosc
 SET Kalorie = 160
 WHERE Nazwa = 'Filet z kurczaka';
 
--- Zmiana zalecenia dotyczącego diety, np. aktualizacja kaloryczności
+-- 6
+-- Zmiana zalecenia dotyczącego diety
 UPDATE ZaleceniaLekarza
 SET KalorieDziennie = 1800
 WHERE NazwaDiety = 'Niskokaloryczna';
 
--- Usunięcie produktu z tabeli żywności (np. jeśli produkt został wycofany ze sprzedaży)
+-- 7
+-- Usunięcie produktu z tabeli żywności 
 DELETE FROM Zywnosc WHERE Nazwa = 'Banan';
 
--- Usunięcie ćwiczenia, jeśli nie jest już zalecane
+-- 8
+-- Usunięcie ćwiczenia
 DELETE FROM Cwiczenia WHERE Nazwa = 'Spacer';
